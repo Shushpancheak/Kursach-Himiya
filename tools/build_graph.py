@@ -278,7 +278,7 @@ def build(with_blame: bool = True) -> dict:
         "generated_from": git("rev-parse", "HEAD").strip(),
         "nodes": nodes,
         "trees": sorted(trees.values(), key=lambda t: t["id"]),
-        "spec_drift": spec_drift({n["id"] for n in nodes}),
+        "spec_drift": spec_drift(nodes),
         "summary": summarise(nodes),
     }
 
@@ -309,20 +309,42 @@ def resolve_positions(nodes: list[dict]):
         node["abs_x"], node["abs_y"] = position if position else (None, None)
 
 
-def spec_drift(focus_ids: set[str]) -> dict:
-    """Focuses with no spec, and specs naming focuses that do not exist.
+def spec_drift(nodes: list[dict]) -> dict:
+    """Where intent and reality disagree.
 
-    OpenSpec describes intent; the parser reports reality. Neither is corrected
-    to match the other — the gap itself is the finding.
+    Two asymmetric questions, because the specs are deliberately written at
+    capability level rather than per focus:
+
+    - **specified_but_missing** — a spec or change names a focus id that does
+      not exist. Always a finding.
+    - **unspecified_fork_content** — a focus this fork authored (provenance
+      `owner` or `agent`) that no spec or change folder mentions. Content we
+      added should trace back to a recorded intent; content inherited from
+      upstream should not, and is excluded.
+
+    Counting *upstream* focuses as "unspecified" would report ~2,600 findings
+    forever and mean nothing. The inventory is never declared (plan §3.1);
+    only our own additions are expected to have a spec behind them.
     """
-    spec_ids: set[str] = set()
-    for path in sorted(REPO.glob("openspec/specs/**/*.md")):
-        spec_ids.update(re.findall(r"\b([A-Z]{3}_[A-Za-z0-9_]+)\b",
-                                   path.read_text(encoding="utf-8", errors="replace")))
+    named: set[str] = set()
+    sources = sorted(REPO.glob("openspec/specs/**/*.md")) + sorted(
+        REPO.glob("openspec/changes/**/*.md")
+    )
+    for path in sources:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        # Strip file paths first. Specs cite implementation files, and
+        # `GEN_political_modifiers.txt` is not a focus id.
+        text = re.sub(r"\S*/\S+|\b[\w./-]+\.(?:txt|md|yml|gfx|gui|json|py)\b", " ", text)
+        named.update(re.findall(r"\b([A-Z]{3}_[A-Za-z0-9_]+)\b", text))
+
+    present = {n["id"] for n in nodes}
+    ours = {n["id"] for n in nodes if n["provenance"] in (OWNER, AGENT)}
     return {
-        "specified_but_missing": sorted(spec_ids - focus_ids),
-        "present_but_unspecified": len(focus_ids - spec_ids),
-        "specs_indexed": len(spec_ids),
+        "specified_but_missing": sorted(named - present),
+        "unspecified_fork_content": sorted(ours - named),
+        "fork_authored_focuses": len(ours),
+        "ids_named_by_specs": len(named),
+        "sources_indexed": len(sources),
     }
 
 
@@ -356,7 +378,8 @@ def main() -> int:
     print(f"  fully complete: {summary['fully_complete']}")
     drift = graph["spec_drift"]
     print(f"  spec drift: {len(drift['specified_but_missing'])} specified-but-missing, "
-          f"{drift['present_but_unspecified']} present-but-unspecified")
+          f"{len(drift['unspecified_fork_content'])} of "
+          f"{drift['fork_authored_focuses']} fork-authored focuses unspecified")
     return 0
 
 
