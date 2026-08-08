@@ -74,6 +74,54 @@ It does not model Clausewitz scope changers. In a mod whose triggers are full of
 
 ---
 
+## S1 — headless HOI4 on the GPU-less server: **PASS**
+
+The highest-severity risk in the register (R1). Retired.
+
+The game reaches the main menu under Xvfb with Mesa llvmpipe in ~26 s, **with the mod loaded** — `[1917.01.01.01][frontend.cpp:177]: Startup time: 26226ms`. The 1917 date is RoR's, not vanilla's 1936, so the mod is genuinely active.
+
+Three things were required, none of them obvious:
+
+1. **`steamclient.so` symlinked into `~/.steam/sdk64/`.** Without it SteamAPI cannot initialise and the game crashes. The file ships with steamcmd at `steamcmd/linux64/steamclient.so` but nothing links it.
+2. **`multi_sampling=0` in `settings.txt`.** It crashed reproducibly at `Using multisampling: 4` with `Video memory: 0` reported by llvmpipe.
+3. **`LIBGL_ALWAYS_SOFTWARE=1`**, and `SDL_AUDIODRIVER=dummy` to stop 2,235 lines of missing-sound-effect spam (the server has no audio device).
+
+**Lane B2 caveat.** Without a running Steam client the game reports `Active DLC Count: 0`, and `dlc_load.json` does not change that — its `disabled_dlcs` list can turn owned DLC off, not unowned DLC on. Fine for a boot smoke test. **Not fine for telemetry**, because the mod gates on 13 DLCs and a world generated without them is not the world the owner plays. Running the full Steam client headless is the remaining option; it is untried.
+
+`tools/t4_boot.sh` implements the test, with `--baseline` for the no-mod run.
+
+### What T4 found that T1 could not
+
+The boot produced 5,183 non-sound errors with the mod loaded against ~53 for vanilla alone. One category was a genuine gap in the static checks: **1,002 `Texture Handler encountered missing texture file` lines** — sprites that *are* declared in a `.gfx` but whose `texturefile` does not exist. T1 only checked the other direction, icon → declaration, and never followed the declaration to disk.
+
+That is now `R009`. It reproduces the game's own finding exactly: `gfx/interface/goals/LIT/LIT_agrarien_refor.dds` is declared but absent — the real file is `LIT_agrarien_refor**m**.dds`.
+
+Because vanilla's `gfx/` is ~900 MB of `.dds` and is not synced to the Mac, `R009` checks a generated path manifest instead:
+
+```bash
+cd "$HOI4_GAME_ROOT" && find gfx dlc integrated_dlc -type f \
+  \( -iname '*.dds' -o -iname '*.tga' -o -iname '*.png' \) | sort \
+  > "$ROR_REFS/hoi4-vanilla-assets.txt"
+```
+
+39,214 paths, 2.3 MB. Regenerate after a HOI4 update.
+
+## S7 — driving OpenSpec from `codex exec`: **PASS**
+
+`codex exec` runs fully non-interactively — `approval: never`, `sandbox`, `-C <dir>`, `--ephemeral`, and `--output-schema` for structured results. It executes shell commands in the repo and runs the `openspec` CLI successfully.
+
+One infrastructure blocker, now fixed: Codex sandboxes commands with bubblewrap, and **Ubuntu 24.04 blocks unprivileged user namespaces**, so every command failed with `bwrap: No permissions to create a new namespace`. Persisted in `/etc/sysctl.d/60-codex-userns.conf`:
+
+```
+kernel.apparmor_restrict_unprivileged_userns=0
+kernel.unprivileged_userns_clone=1
+user.max_user_namespaces=15000
+```
+
+**Shape correction to plan v2 §5.2:** when the target is Codex, `openspec init` writes its workflows to `.agents/skills/` as **skills**, not as `/opsx:*` slash commands — those are Claude-only. The runner therefore points Codex at `.agents/skills/openspec-apply-change/SKILL.md` in the prompt rather than invoking a command. R8's inline-prompt fallback was not needed.
+
+`tools/run_branch.sh` implements plan v2 §5.2. It fails closed in two places: no quota reading means skip (S5 is still unresolved — there is no supported programmatic quota source, so `quota_remaining` is a single stub to wire one into), and no owner-approved change folder means abort.
+
 ## Vanilla HOI4 — installed, and what it changed
 
 `v1.19.2.0` "Operation Postern", matching RoR's `supported_version="1.19.*"`. 20 GB on the server via steamcmd; a 139 MB text subset synced to the Mac at `$HOI4_VANILLA_ROOT`.

@@ -76,6 +76,7 @@ class Lint:
         self.focus_ids: set[str] = set()
         self._sprites: set[str] | None = None
         self._vanilla = _UNSET
+        self._assets: set[str] | None = None
 
     # -- helpers ------------------------------------------------------------
 
@@ -475,6 +476,32 @@ class Lint:
         return names
 
     @property
+    def vanilla_assets(self) -> set[str]:
+        """Vanilla texture paths, from a manifest rather than the files.
+
+        Vanilla's gfx/ is ~900 MB of .dds and is not synced to the Mac, so
+        existence is checked against a generated path list instead:
+
+            find gfx dlc integrated_dlc -type f \\( -iname '*.dds' -o \\
+                -iname '*.tga' -o -iname '*.png' \\) | sort > vanilla-assets.txt
+
+        Regenerate it after a HOI4 update.
+        """
+        if self._assets is None:
+            self._assets = set()
+            raw = os.environ.get("HOI4_VANILLA_ASSETS", "")
+            candidate = Path(raw).expanduser() if raw else (
+                self.vanilla.parent / "hoi4-vanilla-assets.txt" if self.vanilla else None
+            )
+            if candidate and candidate.exists():
+                self._assets = {
+                    line.strip().replace("\\", "/").lower()
+                    for line in candidate.read_text(encoding="utf-8", errors="replace").splitlines()
+                    if line.strip()
+                }
+        return self._assets
+
+    @property
     def vanilla(self) -> Path | None:
         """`$HOI4_VANILLA_ROOT`, when it is present and looks like an install."""
         if self._vanilla is _UNSET:
@@ -486,6 +513,37 @@ class Lint:
                 else None
             )
         return self._vanilla
+
+    # -- sprites ------------------------------------------------------------
+
+    def check_sprite_textures(self):
+        """Every declared spriteType points at a texture that exists.
+
+        The mirror image of R007/R008, and found the hard way: the T4 boot
+        test reported 1,002 `Texture Handler encountered missing texture
+        file` lines that no static check here caught, because the icon
+        resolved to a declaration and the declaration was never followed.
+
+        Textures may live in the mod or in vanilla, so both roots are tried.
+        """
+        for path in self.scan("interface/**/*.gfx", "gfx/**/*.gfx"):
+            text = path.read_text(encoding="utf-8-sig", errors="replace")
+            for number, line in enumerate(text.splitlines(), start=1):
+                match = re.search(r'texturefile\s*=\s*"([^"]+)"', line, re.IGNORECASE)
+                if not match:
+                    continue
+                # .gfx files mix `/` and escaped `\\`; collapse both, and the
+                # duplicate separators the mix produces.
+                relative = re.sub(r"/+", "/", match.group(1).replace("\\", "/")).lstrip("/")
+                if (self.root / relative).exists():
+                    continue
+                if relative.lower() in self.vanilla_assets:
+                    continue
+                self.report(
+                    "R009", WARNING, path, number,
+                    f"texturefile `{relative}` does not exist in the mod"
+                    + (" or vanilla" if self.vanilla else ""),
+                )
 
     # -- ideas --------------------------------------------------------------
 
@@ -538,6 +596,7 @@ class Lint:
         self.check_localisation()
         self.check_engine()
         self.check_idea_pictures()
+        self.check_sprite_textures()
         self.check_focus_trees(focuses, trees)
         return self.findings
 
