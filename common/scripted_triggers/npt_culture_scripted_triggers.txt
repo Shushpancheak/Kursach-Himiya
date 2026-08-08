@@ -347,3 +347,4 @@ is_natural_core_territory_of_PREV = {
 		}
 	}
 }
+}

@@ -51,3 +51,4 @@ units = {
 			division_template = "Infantry Division"
 			start_experience_factor = 0.05
 			}
+}

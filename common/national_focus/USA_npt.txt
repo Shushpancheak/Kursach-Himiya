@@ -2262,8 +2262,6 @@ focus_tree = {
 			}
 		}
 	}
-			}
-		}
 	focus = {
 		id = USA_gen_army_aviation2
 		icon = GFX_goal_generic_air_doctrine
@@ -2675,3 +2673,4 @@ focus_tree = {
 		
 			}
 		}
+}

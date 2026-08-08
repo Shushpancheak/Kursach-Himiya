@@ -10,16 +10,18 @@ Found by `tools/ror_lint.py` (structural pass) on the fork point, `ad86f3a6a`, 2
 
 ## Fixed in this fork
 
-### U-01 — `USA_npt.txt`: 21 focuses sat outside the focus tree
+### U-01 — `USA_npt.txt`: 20 focuses sat outside the focus tree
 **Severity: high. Behaviour changed.**
 
-`focus_tree = {` opened at line 1 and closed at line 2265, followed by an orphan `}`. The remaining 21 `focus = { ... }` blocks (lines 2267–2677) were therefore **top-level entries in a national_focus file**, which is not a valid position — the only legal top-level keys are `focus_tree`, `shared_focus`, `joint_focus`, `style` and `continuous_focus_palette`.
+`focus_tree = {` opened at line 1 and closed at line 2265, followed by an orphan `}`. The remaining 20 `focus = { ... }` blocks (lines 2267–2677) were therefore **top-level entries in a national_focus file**, which is not a valid position — the only legal top-level keys are `focus_tree`, `shared_focus`, `joint_focus`, `style` and `continuous_focus_palette`.
 
 The affected focuses begin at `USA_gen_army_aviation2` and run to the end of the file.
 
 **Fix:** removed the two orphan braces, closed the tree at EOF.
 
-**Consequence:** 21 previously dead focuses are now live in the USA tree. This is a real gameplay change and USA's tree should be looked at before it is trusted. It is the reason this file is flagged in the touch register.
+**Verified with `tools/build_graph.py`:** the USA tree held 133 focuses with 20 orphaned before the fix, and 153 with 0 orphaned after.
+
+**Consequence:** 20 previously dead focuses are now live in the USA tree. This is a real gameplay change and USA's tree should be looked at before it is trusted. It is the reason this file is flagged in the touch register.
 
 ### U-02 — `events/Turkey.txt`: `turkey.29` and `turkey.30` could not fire correctly
 **Severity: high. Behaviour changed.**

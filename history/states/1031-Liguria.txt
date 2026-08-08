@@ -29,3 +29,4 @@ state = {
 			6788 = { naval_base = 8 }
 		}
 }
+}
