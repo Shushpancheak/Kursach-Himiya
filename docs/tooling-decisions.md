@@ -86,9 +86,40 @@ Three things were required, none of them obvious:
 2. **`multi_sampling=0` in `settings.txt`.** It crashed reproducibly at `Using multisampling: 4` with `Video memory: 0` reported by llvmpipe.
 3. **`LIBGL_ALWAYS_SOFTWARE=1`**, and `SDL_AUDIODRIVER=dummy` to stop 2,235 lines of missing-sound-effect spam (the server has no audio device).
 
-**Lane B2 caveat.** Without a running Steam client the game reports `Active DLC Count: 0`, and `dlc_load.json` does not change that — its `disabled_dlcs` list can turn owned DLC off, not unowned DLC on. Fine for a boot smoke test. **Not fine for telemetry**, because the mod gates on 13 DLCs and a world generated without them is not the world the owner plays. Running the full Steam client headless is the remaining option; it is untried.
+### DLC on a headless server — **SOLVED. `Active DLC Count: 36`.**
 
-`tools/t4_boot.sh` implements the test, with `--baseline` for the no-mod run.
+This took three separate fixes and the root cause was not what it looked like.
+
+`dlc_load.json` is a dead end: its `disabled_dlcs` list turns owned DLC *off*, it cannot turn unowned DLC *on*.
+
+1. **The Steam client must be running**, not just steamcmd. `steam-installer` hard-blocks on a zenity dialog ("Steam is proprietary… Install/Cancel") that nobody can click headless — a stub `zenity` in `~/bin` that `exit 0`s answers it.
+2. **The client needs one interactive login.** steamcmd's cached token is not interchangeable: steamcmd logged in fine as `[U:1:84616051]` while the client sat at `[U:1:0]`, because there was no `loginusers.vdf` and no `AutoLoginUser`. Done once over VNC (`~/bin/steam-gui.sh` starts Xvfb :99 + x11vnc on localhost:5900). After that the client auto-logins headless forever.
+3. **The real cause.** Even logged in, DLC stayed at 0. `steamcmd --force_install_dir` installs *outside any Steam library*, so the client does not know the game exists and reports every DLC as not installed. The fix is to make the install visible to the client:
+
+```bash
+S=~/.local/share/Steam/steamapps
+cp "$GAME/steamapps/appmanifest_394360.acf" "$S/"
+ln -sfn "$GAME" "$S/common/Hearts of Iron IV"
+```
+
+Restart Steam, and `libraryfolders.vdf` gains `"394360"`. **`Active DLC Count: 36`.**
+
+Note macOS Screen Sharing will not connect to a `-nopw` VNC server — it hangs waiting for authentication. x11vnc needs `-rfbauth`.
+
+### T4's baseline is empty, which is the best possible outcome
+
+**Vanilla with all 36 DLC active writes a completely empty `error.log`.** Every line the candidate run produces therefore belongs to the mod — no allowlist tuning, no inherited noise.
+
+This also explains the earlier vanilla errors (`game rule LIT_ai_behavior does not exist` and friends): they were DLC-gated content failing *because DLC was inactive*, not vanilla defects.
+
+Current signal: **2,526 error lines from the mod**, including classes no static tier can reach —
+
+- `Unknown effect-type: BLR_bzns_low_popularity_increase_effect` (`common/decisions/npt_BLR_decisions.txt:730`) — a scripted effect that does not exist
+- `Undefined ideology: democratic` (`history/countries/RUS - Reichskommisariat Nordamerika.txt:160`)
+- `SubUnit <hq_engineer> attempts to unlock ability deeper_dig_in, which doesn't exist`
+- `Duplicate subunit category: category_army`
+
+`tools/t4_boot.sh` implements the test. It refuses to proceed when `Active DLC Count` is 0, because a DLC-less run is not comparable to a DLC-ful one — the mod gates on 13 of them, so the loaded content genuinely differs. Override with `T4_REQUIRE_STEAM=0`.
 
 ### What T4 found that T1 could not
 

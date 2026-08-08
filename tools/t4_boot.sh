@@ -7,14 +7,18 @@
 #   tools/t4_boot.sh --baseline          # boot WITHOUT the mod, write baseline
 #   tools/t4_boot.sh                     # boot WITH the mod, diff vs baseline
 #
-# Server-only. Requires the settings established by spike S1:
+# Server-only. Requires the setup established by spike S1:
 #   - steamclient.so symlinked into ~/.steam/sdk64 (SteamAPI init)
 #   - multi_sampling=0 in settings.txt (it crashes at 4 with llvmpipe)
 #   - LIBGL_ALWAYS_SOFTWARE=1
+#   - a logged-in Steam client on DISPLAY :99, via ~/bin/steam-gui.sh
 #
-# Known limitation: without a running Steam client the game reports
-# `Active DLC Count: 0`. Harmless for a boot smoke test, but it means this
-# is NOT a faithful basis for Lane B2 telemetry — see docs/tooling-decisions.md.
+# DLC needs the Steam client running AND the game registered in a Steam
+# library. steamcmd's --force_install_dir puts the game outside any library,
+# so the client does not know it is installed and reports `Active DLC
+# Count: 0` even while logged in. The fix is a symlink from
+# steamapps/common/<installdir> plus the appmanifest — see
+# docs/tooling-decisions.md. With that in place: Active DLC Count 36.
 
 set -uo pipefail
 
@@ -52,11 +56,24 @@ if [[ -f "$DATA_DIR/settings.txt" ]]; then
   sed -i 's/multi_sampling=[0-9]*/multi_sampling=0/; s/vsync=yes/vsync=no/' "$DATA_DIR/settings.txt"
 fi
 
+# The game must share a display with the Steam client, or SteamAPI cannot
+# reach it and every DLC reads as unowned. steam-gui.sh is idempotent.
+if [[ "${T4_REQUIRE_STEAM:-1}" == "1" ]]; then
+  if ! pgrep -f "ubuntu12_32/steam" >/dev/null; then
+    echo "T4: starting Steam on :99"
+    "$HOME/bin/steam-gui.sh" >/dev/null 2>&1
+    sleep 45   # login round-trip
+  fi
+  if ! grep -aq "Logged On" "$HOME/.local/share/Steam/logs/connection_log.txt" 2>/dev/null; then
+    echo "T4: WARNING — Steam is not logged in; DLC will read as inactive" >&2
+  fi
+fi
+
 rm -rf "$DATA_DIR/logs"
 echo "T4: booting ($mode), ${TIMEOUT}s cap..."
 ( cd "$GAME_ROOT" && \
-  SDL_AUDIODRIVER=dummy LIBGL_ALWAYS_SOFTWARE=1 \
-  timeout "$TIMEOUT" xvfb-run -a -s "-screen 0 1280x720x24" ./hoi4 -debug ) >/dev/null 2>&1
+  DISPLAY="${T4_DISPLAY:-:99}" SDL_AUDIODRIVER=dummy LIBGL_ALWAYS_SOFTWARE=1 \
+  timeout "$TIMEOUT" ./hoi4 -debug ) >/dev/null 2>&1
 
 LOG="$DATA_DIR/logs/error.log"
 if [[ ! -f "$LOG" ]]; then
@@ -70,6 +87,19 @@ if ! grep -aq "Startup time" "$DATA_DIR/logs/setup.log" 2>/dev/null; then
   exit 1
 fi
 echo "T4: reached main menu — $(grep -ah 'Startup time' "$DATA_DIR/logs/setup.log" | tail -1)"
+grep -rah "Active DLC Count\|Active Mod Count" "$DATA_DIR/logs/" 2>/dev/null | sed 's/^/T4: /' | head -2
+
+# A run with no DLC is not comparable to one with DLC: the mod gates on 13 of
+# them, so the loaded content differs. Refuse to write a baseline that would
+# be silently mismatched against later runs.
+dlc_count=$(grep -rah "Active DLC Count" "$DATA_DIR/logs/" 2>/dev/null \
+  | grep -oE "Active DLC Count: [0-9]+" | grep -oE "[0-9]+" | tail -1)
+if [[ "${T4_REQUIRE_STEAM:-1}" == "1" && "${dlc_count:-0}" == "0" ]]; then
+  echo "T4: FAIL — Active DLC Count is 0. The game is not registered in a Steam" >&2
+  echo "    library, or Steam is not logged in. See docs/tooling-decisions.md." >&2
+  echo "    Set T4_REQUIRE_STEAM=0 to accept a DLC-less run." >&2
+  exit 1
+fi
 
 # Normalise: drop timestamps and game dates so the diff is about content.
 # Sound-effect spam is excluded — the server has no audio device and the
