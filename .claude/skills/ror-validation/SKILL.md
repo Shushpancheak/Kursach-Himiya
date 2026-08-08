@@ -1,0 +1,1 @@
+../../../.agents/skills/ror-validation/SKILL.md
