@@ -58,12 +58,71 @@ This was the **only** unterminated string in the mod, and it is the one file whe
 
 Six copied country templates (`BIA`, `CBV`, `BAR`, `SOK`, `ZIM`, `KAT` — all identical, line 34) and `Transcaspian_government.txt` line 1284.
 
+### U-08 — fifteen CP1251 script files, and two silent typos
+**Severity: high for the encoding. Behaviour changed.**
+
+Found by T4, invisible to every static check here because each reader uses `errors="replace"`.
+
+**Fifteen files were CP1251, not UTF-8.** The game's parser stops at the first bad byte, so a mis-encoded *comment* truncates the rest of the file. `common/ideas/npt_RSS_esser.txt` lost two idea definitions that way, surfacing as `Unknown modifier` and `Expected idea name` errors two hundred lines further down. All fifteen were pure CP1251 (verified not mixed), so transcoding was mechanical. Now enforced as `S002`.
+
+One was not a comment: `interface/npt_news_eventpictures.gfx` declares `name = "GFX_news_с_event_152"` with a **Cyrillic es** inside the sprite name. Left as-is — renaming a sprite risks breaking references, and it is legal now that the file is UTF-8.
+
+**Two silent typos, both with gameplay effect:**
+
+- `common/ideas/npt_Austro-hungary.txt:32` — `politiral_power_factor` → `political_power_factor`. The idea was silently missing its -5% political power.
+- `events/Poland.txt:10487` — `Padd_timed_idea` → `add_timed_idea`. The timed idea was never applied.
+
+Confirmed eliminated by a follow-up T4 run.
+
 ### U-07 — four malformed colour codes
 **Severity: cosmetic.**
 
 `work_in_progress`, `no_good_idea` and `rcw_country_asks_foreing_help` in `npt_other_l_russian.yml` ended with a bare `§` rather than the reset token `§!`. `RVA_convening_military_council_prompt` in `npt_RVA_focuses_l_russian.yml` had `50%§.` — a `§` with no code after it.
 
 ---
+
+## T4 runtime errors — triage
+
+From `tools/t4_boot.sh` against an empty vanilla+DLC baseline, so every line below belongs to the mod. 4,453 lines after the fixes in U-08.
+
+| Class | Lines | Verdict |
+|---|---|---|
+| Ideology dynamic-token OOS warnings | 1,809 | **Benign here.** Not fixable. |
+| Missing texture files | 1,002 | Real; art or references missing. Partly `R009`. |
+| `character_manager` portrait conversion | 400 | Portrait files wrong size/format. |
+| `flagtextureatlas` | 237 | Missing or malformed country flags. |
+| Parse/validation in **mod** files | 82 | **The actionable list.** See below. |
+| Parse/validation in **vanilla** files | 85 | Vanilla's own; not ours. |
+| Everything else | ~840 | Long tail, 1,591 distinct messages. |
+
+### The dynamic-token warnings are not a defect
+
+1,809 of the 4,453 are `Token <ideology> is a dynamic token, this can cause OOS depending on how it's used`, across RoR's ten ideologies — `market_liberalism`, `social_liberalism`, `radical_socialism`, `national_syndicalism`, `conservatism`, `despotism`, `authoritarism`, `social_democracy`, `communism`, `fascism`.
+
+RoR **replaces vanilla's ideology set**, and referencing a custom ideology as a token is exactly how that is done. The warning is about multiplayer desync. **This fork is single-player; do not "fix" these.** Suppressing them would mean not using custom ideologies, which is the mod's premise.
+
+This also explains N-07 below: vanilla files the mod overrides still refer to `democratic_drift` and `neutrality_drift`, ideologies RoR removed.
+
+### N-07 — 82 parse/validation errors in mod files
+**Status: open. Reported by T4 only — no static tier reaches these.**
+
+| Kind | Count | Example |
+|---|---|---|
+| Unknown trigger-type | 19 | `available_if_capitulated` used as a trigger (`West_Ukrainian.txt:868`); `SET` (`poland.txt:1341`) |
+| Unknown effect-type | 11 | `add_commander_power` — probably `add_command_power` (`Peoples_Volunteer_Army.txt:413`) |
+| invalid modifier | 9 | `neutrality_drift`, `democratic_drift` — ideologies RoR removed |
+| Malformed token | 8 | `west_africa` (`npt_WWI_ENG.txt:116`) |
+| Not a valid value | 7 | `POL` (`POL_dynamic_modifiers.txt:8`), `RUS` (`events/Poland.txt:1139`) |
+| Unknown modifier | 7 | `army_organizator` (`npt_poland.txt:43`) |
+| Unexpected token | 4 | `naval_supremacy_factor` in all four `ship_hull_*.txt` |
+| Entry doesn't exist | 3 | `ship_hull_escort_carrier` |
+| Duplicate key | 3 | `planning_speed` / `political_power_factor` set twice; last wins |
+
+Each needs a judgement about intent, so they are **not** mechanical fixes. `add_commander_power` → `add_command_power` looks obvious but changes behaviour, and several sit in vanilla files the mod overrides where the right answer may be to drop the override entirely.
+
+### Why there is no static equivalent
+
+A T1 check for unknown effects/triggers/modifiers was **prototyped, measured, and rejected**. Details in `tooling-decisions.md`; the short version is that `modifier` is context-dependent in Clausewitz — inside `ai_will_do` it is a weight block, so a naive check reported 3,032 findings against T4's 34. This class belongs to T4.
 
 ## Not fixed
 
