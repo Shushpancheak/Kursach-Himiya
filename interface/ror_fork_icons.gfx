@@ -1,0 +1,145 @@
+# Sprite declarations for artwork that shipped without one.
+#
+# Each texture below already existed in gfx/ but no spriteType referenced
+# it, so the idea or focus rendered with a missing icon. Declaring them
+# is additive: no upstream file is touched.
+#
+# See docs/known-upstream-defects.md, N-05 and N-06. Values that still
+# have no artwork at all are listed there and are deliberately absent
+# here — a spriteType pointing at a file that does not exist would trade
+# a missing icon for a load error.
+
+spriteTypes = {
+
+	# --- focus icons -------------------------------------------------------
+	spriteType = {
+		name = "GFX_BLR_otkr_gos_univer"
+		texturefile = "gfx/interface/goals/LitBlr/BLR_otkr_gos_univer.dds"
+	}
+	spriteType = {
+		name = "GFX_BLR_razvit_obrz"
+		texturefile = "gfx/interface/goals/LitBlr/BLR_razvit_obrz.dds"
+	}
+	spriteType = {
+		name = "GFX_BLR_sovmest_zased"
+		texturefile = "gfx/interface/goals/LitBlr/BLR_sovmest_zased.dds"
+	}
+
+	# --- idea icons --------------------------------------------------------
+	# Names starting with GFX_ rather than GFX_idea_ are intentional: the
+	# ideas reference them that way, and the engine falls back to using the
+	# picture value verbatim as a sprite name.
+	spriteType = {
+		name = "GFX_CPG_army_poor_army"
+		texturefile = "gfx/interface/ideas/CPG/CPG_army_poor_army.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_brit_zakon"
+		texturefile = "gfx/interface/ideas/CPG/CPG_brit_zakon.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_econom_sotr_cpg"
+		texturefile = "gfx/interface/ideas/CPG/CPG_econom_sotr_cpg.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_eng_dobrovolci"
+		texturefile = "gfx/interface/ideas/CPG/CPG_eng_dobrovolci.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_jmo_with_british"
+		texturefile = "gfx/interface/ideas/CPG/CPG_jmo_with_british.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_lack_of_resources"
+		texturefile = "gfx/interface/ideas/CPG/CPG_lack_of_resources.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_narod_bunt_idea_1"
+		texturefile = "gfx/interface/ideas/CPG/CPG_narod_bunt_idea_1.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_narod_bunt_idea_3"
+		texturefile = "gfx/interface/ideas/CPG/CPG_narod_bunt_idea_3.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_narod_bunt_idea_4"
+		texturefile = "gfx/interface/ideas/CPG/CPG_narod_bunt_idea_4.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_poor_infrastructure"
+		texturefile = "gfx/interface/ideas/CPG/CPG_poor_infrastructure.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_presledyvanie_bolsh"
+		texturefile = "gfx/interface/ideas/CPG/CPG_presledyvanie_bolsh.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_revolutionary_fever"
+		texturefile = "gfx/interface/ideas/CPG/CPG_revolutionary_fever.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_vivox_resyrs_1"
+		texturefile = "gfx/interface/ideas/CPG/CPG_vivox_resyrs_1.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_vivox_resyrs_2"
+		texturefile = "gfx/interface/ideas/CPG/CPG_vivox_resyrs_2.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_war_mission_buha"
+		texturefile = "gfx/interface/ideas/CPG/CPG_war_mission_buha.dds"
+	}
+	spriteType = {
+		name = "GFX_CPG_weakness_of_central_government"
+		texturefile = "gfx/interface/ideas/CPG/CPG_weakness_of_central_government.dds"
+	}
+	spriteType = {
+		name = "GFX_POL_agitation_fascism"
+		texturefile = "gfx/interface/ideas/POL/POL_agitation_fascism.dds"
+	}
+	spriteType = {
+		name = "GFX_POL_agitation_natsynd"
+		texturefile = "gfx/interface/ideas/POL/POL_agitation_natsynd.dds"
+	}
+	spriteType = {
+		name = "GFX_idea_Vasil_Zaharko"
+		texturefile = "gfx/interface/ideas/ministers/BLR/Vasil_Zaharko.dds"
+	}
+	spriteType = {
+		name = "GFX_idea_generic_political_advisor_russia_4"
+		texturefile = "gfx/interface/ideas/ministers/idea_generic_political_advisor_russia_4.dds"
+	}
+	spriteType = {
+		name = "GFX_idea_hedonism"
+		texturefile = "gfx/interface/ideas/idea_hedonism.dds"
+	}
+	spriteType = {
+		name = "GFX_idea_idea_foodstuffs_supply_crisis_3"
+		texturefile = "gfx/interface/ideas/economic/idea_foodstuffs_supply_crisis_3.dds"
+	}
+	spriteType = {
+		name = "GFX_idea_red_new_army"
+		texturefile = "gfx/interface/ideas/idea_red_new_army.dds"
+	}
+	# --- misspelled references to sprites that exist in vanilla -------------
+	# These four ideas name a vanilla sprite with the wrong case or a small
+	# spelling slip. Declaring an alias fixes the icon without editing an
+	# upstream file, and is harmless if the engine's lookup turns out to be
+	# case-insensitive. The texturefile paths resolve against the game root.
+	spriteType = {
+		name = "GFX_idea_mex_callistas"                    # MEX_callistas
+		texturefile = "gfx/interface/ideas/idea_mex_callistas.dds"
+	}
+	spriteType = {
+		name = "GFX_idea_generic_oppresion"                # generic_oppression
+		texturefile = "gfx/interface/ideas/idea_generic_oppression.dds"
+	}
+	spriteType = {
+		name = "GFX_idea_idea_generic_war_preparation"     # doubled idea_ prefix
+		texturefile = "gfx/interface/ideas/idea_generic_war_preparation.dds"
+	}
+	spriteType = {
+		name = "GFX_idea_yug_orthodox_church_support"      # YUG_orthodox_church_support
+		texturefile = "gfx/interface/ideas/idea_yug_orthodox_church_support.dds"
+	}
+}

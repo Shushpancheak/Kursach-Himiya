@@ -7,6 +7,7 @@ New content belongs in new `ror_fork_*` files (see `AGENTS.md` §3). An entry he
 | Date | File | Lines | Reason | Behaviour change? |
 |---|---|---|---|---|
 | 2026-08-08 | `common/national_focus/USA_npt.txt` | 2265–2266, EOF | Removed two orphan `}` that closed `focus_tree` at line 2265; moved the tree's close to EOF. | **Yes** — see defect U-01 |
+| 2026-08-08 | `common/national_focus/USA_npt.txt` | 2317 | `GFX_ggoal_generic_air_fighter2` → `GFX_goal_generic_air_fighter2`; one-character typo, vanilla has the corrected name. | Icon now renders |
 | 2026-08-08 | `common/national_focus/Transcaspian_government.txt` | 1284 | Removed a single orphan `}` after the last `shared_focus`. | No |
 | 2026-08-08 | `common/ideas/npt_Soviet.txt` | EOF | Added the missing `}` closing `ideas`. | No |
 | 2026-08-08 | `common/ideas/npt_italy.txt` | EOF | Added the missing `}` closing `ideas`. | No |

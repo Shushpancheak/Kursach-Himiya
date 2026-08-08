@@ -76,22 +76,36 @@ The engine has a **verbatim fallback**: when `GFX_idea_<picture>` does not exist
 
 Checked against 29,629 sprite declarations across vanilla and the mod: 119 of 119 resolve. The mod is stylistically inconsistent (3,244 ideas use the bare form) but not broken.
 
-### N-05 — 50 idea pictures resolve to no sprite at all
-**Status: unresolved. Reported by `tools/ror_lint.py` as `R008`.**
+### N-05 — idea pictures resolving to no sprite — **PARTIALLY FIXED**
+**Reported by `tools/ror_lint.py` as `R008`. 76 uses → 27.**
 
-76 uses across 50 distinct values. Split by whether the artwork exists:
+Originally 76 uses across 50 distinct values.
 
-- **23 have a `.dds` on disk but no `.gfx` spriteType.** The art was drawn and shipped but never declared, so the idea shows a missing icon. Examples: `GFX_CPG_vivox_resyrs_1/2` → `gfx/interface/ideas/CPG/CPG_vivox_resyrs_*.dds`; `GFX_POL_agitation_fascism` → `gfx/interface/ideas/POL/POL_agitation_fascism.dds`; `Vasil_Zaharko` → `gfx/interface/ideas/ministers/BLR/Vasil_Zaharko.dds`. **Fixing these is mechanical** — declare the sprites in a new additive `interface/ror_fork_*.gfx` — and would visibly improve the mod.
-- **27 have no artwork found**, including `red_new_army` (20 uses), `generic_pp_stability_bonus` (5) and `mex_callistas` (2). These need art, or a different `picture` value.
+**Fixed** in `interface/ror_fork_icons.gfx` (additive — no upstream file touched):
+
+- **23 values whose `.dds` was already on disk with no spriteType.** The art shipped but was never declared, so the idea rendered with a missing icon. `GFX_CPG_vivox_resyrs_1/2`, `GFX_POL_agitation_fascism`, `Vasil_Zaharko`, `red_new_army` (20 uses on its own) and others.
+- **4 misspelled references to sprites that exist in vanilla**, aliased rather than corrected at the call site so no upstream file changes: `mex_callistas` → `MEX_callistas`, `generic_oppresion` → `generic_oppression`, `idea_generic_war_preparation` (doubled prefix), `yug_orthodox_church_support` → `YUG_orthodox_church_support`.
+
+**Still open — 27 uses, all genuinely lacking artwork.** Two of these look like substitutions rather than typos and are left as owner judgement calls, since choosing a different icon changes meaning:
+
+- `generic_pp_stability_bonus` (5 uses) — nearest vanilla sprite is `generic_pp_unity_bonus`, which is a different concept.
+- `foodstuffs_supply_crisis` — vanilla has `_4` and `_5` variants but no unsuffixed one.
+
+The rest (`GFX_RSS_*`, `NVA_white_propaganda_no_ns`, `BLR_*`, `Helium_Belkind`, `Vasil_Zaharko` siblings) need art.
 
 Note the check must allow two engine behaviours or it reports ~1,600 phantom findings: the verbatim fallback above, and **graphical-culture variants** — generic advisor portraits are declared as `GFX_idea_<name>_russian_2d`, `_western_european_2d` and so on, with the suffix chosen at runtime, so a bare `<name>` resolves through any of them. That accounts for 1,059 uses of `min_random_generic_icon_N` alone.
 
-### N-06 — 14 focus icons resolve to no sprite
-**Status: unresolved. Reported as `R007`.**
+Note the check must allow two engine behaviours or it reports ~1,600 phantom findings: the verbatim fallback above, and **graphical-culture variants** — generic advisor portraits are declared as `GFX_idea_<name>_russian_2d`, `_western_european_2d` and so on, with the suffix chosen at runtime, so a bare `<name>` resolves through any of them. That accounts for 1,059 uses of `min_random_generic_icon_N` alone.
 
-- **`GFX_ggoal_generic_air_fighter2`** (`USA_npt.txt:2317`) is a one-character typo — vanilla has `GFX_goal_generic_air_fighter2`. Trivially fixable.
-- **3 have art but no declaration**: `GFX_BLR_sovmest_zased`, `GFX_BLR_razvit_obrz`, `GFX_BLR_otkr_gos_univer`, all with `.dds` files under `gfx/interface/goals/LitBlr/`.
-- **10 have neither art nor declaration**: `GFX_z_goal_rabgosudarstvo`, `GFX_z_goal_socmilirarism` (itself probably a typo for `socmilitarism`, though neither exists), `GFX_z_goal_permrevolt`, `GFX_BLR_pazvernut_vneshn_polit`.
+### N-06 — focus icons resolving to no sprite — **PARTIALLY FIXED**
+**Reported as `R007`. 14 → 10.**
+
+**Fixed:**
+
+- **`GFX_ggoal_generic_air_fighter2`** (`USA_npt.txt:2317`) — a one-character typo for vanilla's `GFX_goal_generic_air_fighter2`. Corrected at the call site; logged in `upstream-touches.md`.
+- **3 with art but no declaration** — `GFX_BLR_sovmest_zased`, `GFX_BLR_razvit_obrz`, `GFX_BLR_otkr_gos_univer`, all with `.dds` files under `gfx/interface/goals/LitBlr/`. Declared in `interface/ror_fork_icons.gfx`.
+
+**Still open — 10 uses, no artwork anywhere:** `GFX_z_goal_rabgosudarstvo`, `GFX_z_goal_socmilirarism` (probably meant `socmilitarism`, but neither exists), `GFX_z_goal_permrevolt`, `GFX_BLR_pazvernut_vneshn_polit`. These affect the shared socialist branch in `generic_shared_npt.txt`, so they are visible on several countries.
 
 ### N-03 — `FIN_republic` and `FIN_ASK_94` deadlock each other
 **Status: unresolved, needs a design decision.** `common/national_focus/Finland_npt_new.txt:451,694`
