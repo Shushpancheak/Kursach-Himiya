@@ -4,15 +4,29 @@ RoR starts on 1 January 1917 and plays through the Revolution, the Civil War and
 
 ## Requirements
 
-### Requirement: The scenario begins in 1917
+### Requirement: The scenario begins in 1917, from one of three bookmarks
 
-The active bookmark is `RISEOFRUSSIA_NAME`, dated `1917.1.1.1`, with `RUS` as the default country. Vanilla's 1936 and 1939 bookmarks are not used.
+Vanilla's 1936 and 1939 bookmarks are blanked. Three starts exist:
+
+| Bookmark | Date | Moment |
+|---|---|---|
+| `npt_rise_of_russia` | `1917.1.1.1` | before the February Revolution; the default, `RUS` |
+| `npt_russian_revolution` | `1917.11.8.5` | the October Revolution |
+| `npt_russian_smuta` | `1918.8.6.1` | the civil war proper |
+
+Content must work from **whichever** of these the player chose. Several existing events gate on this with `has_start_date`, so a branch that silently assumes the 1917 start can be unreachable or nonsensical from the other two.
 
 #### Scenario: Content is dated from the 1917 start
 
 - **WHEN** a change adds a focus, event or decision with a date condition
 - **THEN** the date falls within the mod's timeframe rather than vanilla's
 - **AND** the branch's expected completion window fits the period it depicts
+
+#### Scenario: A branch depicts events before a later bookmark
+
+- **WHEN** a branch covers a period that has already passed in a later start
+- **THEN** it states which bookmarks it is reachable from
+- **AND** it uses `has_start_date` to gate itself rather than assuming the earliest start
 
 #### Scenario: Technology and equipment match the period
 

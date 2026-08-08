@@ -124,6 +124,32 @@ registers:
       Suspicious of anyone who arrives with paperwork.
     corpus: green-anarchist
 
+  baltic-national:
+    address: kodanik / härra, rendered in Russian as гражданин / господин
+    self: >
+      "независимость", "Учредительное собрание", "наш народ", "земля",
+      "Маапяэв", "Балтия". Institutions are named precisely and proudly
+      because they are three months old and their existence is the point.
+    enemies: >
+      Not one enemy but a queue of them — "красные", "остзейские бароны",
+      "германская оккупация", "белые генералы". Any of them may be the
+      immediate threat; none of them is trusted. Great powers are weather.
+    institutions: [Маапяэв, Учредительное собрание, Кайтселийт, Временное правительство]
+    decisions: >
+      Assembly and cabinet, conducted under artillery fire. Legalistic
+      because legality is the whole claim to exist.
+    tone: >
+      Practical, unsentimental, acutely aware of being outweighed. A small
+      nation that has decided to behave as though it will survive. Never
+      grandiose — the numbers do not permit it — and never plaintive either.
+      Where a Russian faction argues about what Russia should be, Estonia
+      is counting rifles and rail wagons.
+    caution: >
+      Do NOT use the foreign-power register. Estonia is not commenting on
+      the Russian argument from outside; it is being fought over. Detachment
+      reads as indifference to its own survival.
+    corpus: foreign-power   # nearest available samples until Estonian text exists
+
   foreign-power:
     address: per that country's own convention
     self: >
@@ -170,6 +196,22 @@ countries:
     note: >
       Komuch. Constantly asserting a legitimacy it cannot enforce. Appeals to
       the Constituent Assembly's mandate.
+
+  EST:
+    register: baltic-national
+    note: >
+      Estonia's Baltic Germans fought FOR Estonia — the Baltenregiment,
+      300 of 2,500 troops in January 1919. The quarrel with them is about
+      land, not loyalty, and text that treats them as the enemy has the
+      history backwards. Cēsis was Estonians helping Latvians fight
+      *Latvia's* Landeswehr.
+
+  LAT:
+    register: baltic-national
+    note: >
+      Unlike Estonia, Latvia's Baltic Germans WERE the enemy — the
+      Landeswehr toppled Ulmanis's government in April 1919 and installed
+      Niedra. Same register, opposite relationship.
 
   LIT:
     register: foreign-power
