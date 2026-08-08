@@ -55,6 +55,8 @@ class Block:
     nodes: list[Node] = field(default_factory=list)
     items: list[str] = field(default_factory=list)
     line: int = 0
+    # Line of the matching `}`. Needed to blame a focus block as a unit.
+    end_line: int = 0
 
     def get(self, key: str) -> Node | None:
         """Last node with this key. Clausewitz lets later keys win."""
@@ -160,7 +162,7 @@ def parse_text(text: str, path: Path | None = None) -> ParseResult:
             if len(stack) == 1:
                 result.problems.append((line, "extra closing brace"))
                 continue
-            stack.pop()
+            stack.pop().end_line = line
             continue
 
         # A bare word or quoted string.
@@ -220,6 +222,55 @@ def strip_comments_and_strings(text: str) -> str:
         else:
             i += 1
     return "".join(out)
+
+
+# --- focus trees -----------------------------------------------------------
+
+
+def iter_focus_blocks(result: ParseResult):
+    """Yield (tree_id, kind, block) for every focus defined in a file.
+
+    Shared by the lint and the graph extractor so the two can never disagree
+    about what counts as a focus — a disagreement there would make the
+    dashboard quietly describe a different mod from the one being validated.
+
+    `kind` is "tree" for focuses inside a `focus_tree`, or "shared" for
+    top-level `shared_focus` / `joint_focus` blocks.
+    """
+    for node in result.root.nodes:
+        if not node.is_block:
+            continue
+        if node.key == "focus_tree":
+            tree_id = node.value.value_of("id") or result.path.stem
+            for child in node.value.get_all("focus"):
+                if child.is_block:
+                    yield tree_id, "tree", node.value, child.value
+        elif node.key in ("shared_focus", "joint_focus"):
+            yield f"<shared:{result.path.stem}>", "shared", None, node.value
+
+
+def prerequisite_groups(block: Block) -> list[list[str]]:
+    """AND-of-OR, preserved verbatim.
+
+    Multiple `prerequisite = { }` blocks are AND-ed together; the `focus =`
+    entries *within* one block are OR-ed. Flattening this is the single
+    easiest way to make both the lint and the dashboard arrows lie.
+    """
+    return [
+        [n.value for n in group.value.get_all("focus") if not n.is_block]
+        for group in block.get_all("prerequisite")
+        if group.is_block
+    ]
+
+
+def exclusive_ids(block: Block) -> list[str]:
+    return [
+        n.value
+        for group in block.get_all("mutually_exclusive")
+        if group.is_block
+        for n in group.value.get_all("focus")
+        if not n.is_block
+    ]
 
 
 # --- localisation ----------------------------------------------------------

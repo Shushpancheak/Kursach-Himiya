@@ -33,8 +33,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from clausewitz import (  # noqa: E402
     Block,
+    exclusive_ids,
+    iter_focus_blocks,
     parse_file,
     parse_localisation,
+    prerequisite_groups,
     strip_comments_and_strings,
 )
 
@@ -211,17 +214,8 @@ class Lint:
         trees: dict[str, list[str]] = defaultdict(list)
 
         for path in self.scan("common/national_focus/*.txt"):
-            result = parse_file(path)
-            for node in result.root.nodes:
-                if not node.is_block:
-                    continue
-                if node.key == "focus_tree":
-                    tree_id = node.value.value_of("id") or path.stem
-                    for child in node.value.get_all("focus"):
-                        if child.is_block:
-                            self._add_focus(focuses, trees, tree_id, child.value, path)
-                elif node.key in ("shared_focus", "joint_focus"):
-                    self._add_focus(focuses, trees, f"<shared:{path.stem}>", node.value, path)
+            for tree_id, _kind, _tree, block in iter_focus_blocks(parse_file(path)):
+                self._add_focus(focuses, trees, tree_id, block, path)
         return focuses, dict(trees)
 
     def _add_focus(self, focuses, trees, tree_id, block: Block, path: Path):
@@ -230,21 +224,8 @@ class Lint:
             self.report("R001", ERROR, path, block.line, "focus block has no `id`")
             return
 
-        # Multiple `prerequisite = { }` blocks are AND-ed; the entries inside a
-        # single block are OR-ed. Getting this backwards makes both the lint and
-        # the dashboard arrows lie, so the structure is preserved verbatim.
-        prerequisites = [
-            [n.value for n in group.value.get_all("focus") if not n.is_block]
-            for group in block.get_all("prerequisite")
-            if group.is_block
-        ]
-        exclusive = [
-            n.value
-            for group in block.get_all("mutually_exclusive")
-            if group.is_block
-            for n in group.value.get_all("focus")
-            if not n.is_block
-        ]
+        prerequisites = prerequisite_groups(block)
+        exclusive = exclusive_ids(block)
 
         if focus_id in focuses:
             first = focuses[focus_id]["file"]
