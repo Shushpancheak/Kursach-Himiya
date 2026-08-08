@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "deny": [
+      "Read(//Users/shoosh/arcadia/**)",
+      "Read(//Users/shoosh/arcadia-*/**)",
+      "Read(//Users/shoosh/arcadia-wt*/**)",
+      "Read(//Users/shoosh/arc-wt/**)",
+      "Read(//Users/shoosh/arc1/**)",
+      "Read(//Users/shoosh/dvarcadia/**)",
+      "Read(//Users/shoosh/trircadia/**)",
+      "Read(//Users/shoosh/junk_submit_arc/**)",
+      "Read(//Users/shoosh/inference_research/**)",
+      "Read(//Users/shoosh/hil-nsv2-notes-backup/**)",
+      "Read(//Users/shoosh/cookies_hils/**)",
+      "Read(//Users/shoosh/.ssh/**)",
+      "Read(//Users/shoosh/.codex/auth.json)",
+      "Read(//Users/shoosh/.aws/**)",
+      "Read(//Users/shoosh/.config/gh/**)",
+      "Bash(arc:*)",
+      "Bash(ya:*)"
+    ]
+  },
+  "env": {
+    "OPENSPEC_TELEMETRY": "0",
+    "DO_NOT_TRACK": "1"
+  }
+}

@@ -1,0 +1,23 @@
+# --- agent-loop working artifacts -----------------------------------------
+.direnv/
+.hoi4skill/
+build/
+*.pyc
+__pycache__/
+
+# Validation and dashboard outputs are rebuilt from source every run.
+# Never commit them: the plan's rule is that the inventory is computed from
+# the .txt files, never declared.
+tools/out/
+dashboard/graph.json
+telemetry/runs/
+
+# Reference material lives in $ROR_REFS, outside the repo. If anyone ever
+# copies it in by accident, do not let it reach a commit.
+/vanilla/
+/paradox_wiki/
+/hoi4-vanilla/
+
+# --- OS noise --------------------------------------------------------------
+.DS_Store
+Thumbs.db
