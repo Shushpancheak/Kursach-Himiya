@@ -48,24 +48,52 @@ Its brace checker agreed with this repo's independent parser on **20 of 20** fil
 
 ---
 
-## S10 — coverage overlap: **INCONCLUSIVE**
+## S10 — coverage overlap: **RESOLVED. Do not adopt hoi4skill.**
 
-Addendum A required this before writing any lint. It cannot be settled yet: every hoi4skill capability that would justify adopting it — `--strict-code-index`, sprite resolution, reference integrity, event-chain analysis — needs `--game-root`, and no vanilla files exist on either machine.
+Re-run on 2026-08-08 with `--game-root` pointed at the real vanilla install, which is what Addendum A said was needed to settle it.
 
-**What is already known:**
+**It got worse, not better: 1,439 errors → 7,418.**
 
-- Focus geometry: hoi4skill has opinions about anchoring but does not check coordinate collisions. Ours.
-- AND-of-OR prerequisite semantics: not covered. Ours.
-- UTF-8 BOM: not observed to be checked. Ours, and it is the highest-value single check here — all 195 upstream localisation files carry the BOM, and a Cyrillic mod that loses it renders as mojibake with every other tier still green.
-- Brace balance: covered by both, and both were verified correct.
+The dominant categories are demonstrably wrong:
 
-**Decision (owner, 2026-08-08): park hoi4skill until vanilla files arrive.** The binary is built and pinned at `v0.30.2` in `$ROR_REFS/hoi4skill/bin/`, not wired into the pipeline. `tools/ror_lint.py` therefore has to stand alone, which R13 wanted anyway.
+| Category | Count | Verdict |
+|---|---|---|
+| `unknown trigger` | 2,179 | **2,131 are `CONTROLLER`, `OWNER` and `IF`** — scope changers, not triggers. 97.8% false positive in its largest category. |
+| `unknown effect` | 999 | `token` and `iteration_output` (261 each) are `special_projects` schema fields; a further 239 are the same scope changers. |
+| `idea picture must omit GFX_idea_` | 119 | **Disproved.** All 119 resolve via the engine's verbatim fallback, which vanilla itself relies on 20 times. See N-01. |
+| `unknown modifier` | 258 | Not individually verified; the prior is poor. |
+| focus layout opinions | ~1,082 | Its own generator's house style. Absolute `x`/`y` is legal. |
 
-Re-run S9 and S10 with `--game-root` once vanilla is in place. The 119-error `GFX_idea_` question is the specific thing to settle first.
+It does not model Clausewitz scope changers. In a mod whose triggers are full of `CONTROLLER = { ... }` and `OWNER = { ... }`, that is disqualifying on its own.
 
-**Licence note:** GPL-3.0-only. Invoke the binary as a separate process. Do not vendor or link its source.
+**What it got right, and what we kept:** its brace checker agreed with our parser on 20 of 20 files. That check now lives in `tools/clausewitz.py`, verified independently, so nothing is lost by dropping the tool.
+
+**Decision: hoi4skill is not part of this pipeline.** The binary stays in `$ROR_REFS/hoi4skill/bin/` at `v0.30.2` for occasional cross-checking, invoked as a separate process (GPL-3.0-only — do not vendor or link its source). Addendum A's premise, that half of T1 already existed, did not survive contact with the mod. `tools/ror_lint.py` stands alone.
+
+**What we own, and now verify:** geometry and coordinate collisions, AND-of-OR prerequisite semantics, UTF-8 BOM, focus and idea sprite resolution (with the vanilla index and both engine fallbacks), graph integrity, the period lexicon.
 
 ---
+
+## Vanilla HOI4 — installed, and what it changed
+
+`v1.19.2.0` "Operation Postern", matching RoR's `supported_version="1.19.*"`. 20 GB on the server via steamcmd; a 139 MB text subset synced to the Mac at `$HOI4_VANILLA_ROOT`.
+
+**DLC: complete.** The game script references 16 distinct `has_dlc` gates and all 16 have an installed DLC; the mod gates on 13, all present. All four integrated expansions (Together for Victory, Death or Dishonor, Waking the Tiger, Man the Guns) are in `integrated_dlc/`. Gaps in the `dlcNNN` numbering are cosmetic and music packs sold as separate Steam apps that never appear in a `has_dlc` gate.
+
+Worth knowing: **DLC ships its script in the base install**, gated at runtime. The `dlc/*/` folders hold only `gfx/`, `interface/`, `music/`, `portraits/` and `sound/`. Reference checking would work with no DLC owned at all.
+
+### Effect on T1
+
+Indexing vanilla changed the result set enormously:
+
+| Check | Without vanilla | With vanilla |
+|---|---|---|
+| `R007` focus icons | 690 | **14** |
+| `R008` idea pictures | 1,685 | **76** |
+
+Because the two modes differ so much, the baseline records `vanilla_indexed` and the lint warns loudly when a comparison mixes them. A baseline built in one mode and used in the other reports thousands of phantom regressions.
+
+`R008` had to learn two engine behaviours before it was trustworthy — the verbatim sprite fallback and graphical-culture suffix variants. Without those it reported ~1,600 phantom findings. Both were discovered by checking vanilla's own content, not by reading documentation.
 
 ## Why the reference material lives outside the repo
 

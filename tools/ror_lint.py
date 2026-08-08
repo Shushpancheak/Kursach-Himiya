@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -42,6 +43,8 @@ from clausewitz import (  # noqa: E402
 )
 
 REPO = Path(__file__).resolve().parent.parent
+
+_UNSET = object()
 
 ERROR = "error"
 WARNING = "warning"
@@ -71,6 +74,8 @@ class Lint:
         self.findings: list[Finding] = []
         self._deny: list[tuple[re.Pattern, str]] | None = None
         self.focus_ids: set[str] = set()
+        self._sprites: set[str] | None = None
+        self._vanilla = _UNSET
 
     # -- helpers ------------------------------------------------------------
 
@@ -339,8 +344,8 @@ class Lint:
             icon = focus["icon"]
             if icon and sprites and icon.startswith("GFX_") and icon not in sprites:
                 self.report("R007", WARNING, path, line,
-                            f"focus `{fid}` uses `{icon}` which is not defined in any mod .gfx "
-                            "(may resolve from vanilla)")
+                            f"focus `{fid}` uses `{icon}`, which is declared in no .gfx "
+                            f"{'(mod or vanilla)' if self.vanilla else '(mod only — vanilla not indexed)'}")
 
             if not focus["has_completion_reward"]:
                 self.report("P001", WARNING, path, line,
@@ -449,11 +454,77 @@ class Lint:
         return keys
 
     def all_sprites(self) -> set[str]:
+        """Sprites declared by the mod *and* by vanilla.
+
+        Without the vanilla index this reports hundreds of icons as missing
+        that resolve perfectly well in game — most of the mod's focus icons
+        are vanilla's `GFX_goal_generic_*`.
+        """
+        if self._sprites is None:
+            self._sprites = self._scan_sprites(self.root)
+            if self.vanilla:
+                self._sprites |= self._scan_sprites(self.vanilla)
+        return self._sprites
+
+    @staticmethod
+    def _scan_sprites(root: Path) -> set[str]:
         names: set[str] = set()
-        for path in sorted(self.root.glob("interface/**/*.gfx")):
+        for path in sorted(root.rglob("*.gfx")):
             text = path.read_text(encoding="utf-8-sig", errors="replace")
             names.update(re.findall(r'name\s*=\s*"(GFX_[A-Za-z0-9_.\-]+)"', text))
         return names
+
+    @property
+    def vanilla(self) -> Path | None:
+        """`$HOI4_VANILLA_ROOT`, when it is present and looks like an install."""
+        if self._vanilla is _UNSET:
+            raw = os.environ.get("HOI4_VANILLA_ROOT", "")
+            candidate = Path(raw).expanduser() if raw else None
+            self._vanilla = (
+                candidate
+                if candidate and (candidate / "common").is_dir()
+                else None
+            )
+        return self._vanilla
+
+    # -- ideas --------------------------------------------------------------
+
+    def check_idea_pictures(self):
+        """`picture = X` on an idea resolves to the sprite `GFX_idea_X`.
+
+        Two engine behaviours make a naive check wrong, and both were found by
+        checking against vanilla rather than by reading documentation:
+
+        1. **Verbatim fallback.** If `GFX_idea_<picture>` does not exist the
+           engine uses `<picture>` as a sprite name directly. Vanilla itself
+           relies on this in 20 of its own ideas, so `picture = GFX_idea_X`
+           is legal despite looking like a doubled prefix.
+        2. **Graphical-culture variants.** Generic advisor portraits are
+           declared as `GFX_idea_<name>_russian_2d`, `_western_european_2d`
+           and so on, and the suffix is chosen at runtime. A bare `<name>`
+           resolves through any of them.
+        """
+        sprites = self.all_sprites()
+        idea_prefixes = {s[len("GFX_idea_"):] for s in sprites if s.startswith("GFX_idea_")}
+
+        for path in self.scan("common/ideas/**/*.txt"):
+            text = path.read_text(encoding="utf-8-sig", errors="replace")
+            for number, line in enumerate(strip_comments_and_strings(text).splitlines(), start=1):
+                match = re.search(r"picture\s*=\s*([A-Za-z0-9_]+)", line)
+                if not match:
+                    continue
+                value = match.group(1)
+                if (
+                    f"GFX_idea_{value}" in sprites
+                    or value in sprites
+                    or any(p.startswith(value + "_") for p in idea_prefixes)
+                ):
+                    continue
+                self.report(
+                    "R008", WARNING, path, number,
+                    f"idea picture `{value}` resolves to no sprite; "
+                    f"neither `GFX_idea_{value}` nor `{value}` is declared in any .gfx",
+                )
 
     # -- entry point --------------------------------------------------------
 
@@ -466,6 +537,7 @@ class Lint:
         self.check_structure()
         self.check_localisation()
         self.check_engine()
+        self.check_idea_pictures()
         self.check_focus_trees(focuses, trees)
         return self.findings
 
@@ -498,19 +570,45 @@ def main() -> int:
     args = parser.parse_args()
 
     limit = changed_files(args.root) if args.changed else None
-    findings = Lint(args.root, limit).run()
+
+    # Whether vanilla was indexed changes the result set enormously — focus
+    # icon findings alone go from 690 to 14 — so it is recorded in the
+    # baseline and checked on every comparison. A baseline built in one mode
+    # and used in the other reports hundreds of phantom regressions.
+    lint = Lint(args.root, limit)
+    findings = lint.run()
+    has_vanilla = lint.vanilla is not None
+    if not has_vanilla:
+        print(
+            "note: HOI4_VANILLA_ROOT is unset or not an install; vanilla sprites "
+            "and references cannot be resolved. Run via direnv, or expect noise.",
+            file=sys.stderr,
+        )
 
     if args.write_baseline:
         args.write_baseline.parent.mkdir(parents=True, exist_ok=True)
         args.write_baseline.write_text(
-            json.dumps({"keys": sorted({f.key() for f in findings})}, indent=1, ensure_ascii=False)
+            json.dumps(
+                {"vanilla_indexed": has_vanilla, "keys": sorted({f.key() for f in findings})},
+                indent=1, ensure_ascii=False,
+            )
         )
-        print(f"baseline written: {len(findings)} findings -> {args.write_baseline}")
+        print(f"baseline written: {len(findings)} findings "
+              f"(vanilla_indexed={has_vanilla}) -> {args.write_baseline}")
         return 0
 
     suppressed = 0
     if args.baseline and args.baseline.exists():
-        known = set(json.loads(args.baseline.read_text())["keys"])
+        data = json.loads(args.baseline.read_text())
+        if data.get("vanilla_indexed", False) != has_vanilla:
+            print(
+                f"WARNING: baseline was built with vanilla_indexed="
+                f"{data.get('vanilla_indexed')}, this run has {has_vanilla}. "
+                "The comparison is not meaningful — fix the environment rather "
+                "than rewriting the baseline.",
+                file=sys.stderr,
+            )
+        known = set(data["keys"])
         before = len(findings)
         findings = [f for f in findings if f.key() not in known]
         suppressed = before - len(findings)

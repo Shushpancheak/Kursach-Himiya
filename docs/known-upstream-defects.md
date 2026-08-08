@@ -67,14 +67,31 @@ Six copied country templates (`BIA`, `CBV`, `BAR`, `SOK`, `ZIM`, `KAT` — all i
 
 ## Not fixed
 
-### N-01 — 117 ideas use `picture = GFX_idea_<name>`
-**Status: unresolved, needs vanilla files.**
+### N-01 — 119 ideas use `picture = GFX_idea_<name>` — **RESOLVED: not a defect**
+**Status: closed 2026-08-08, once vanilla was available.**
 
-HOI4 resolves an idea's `picture` by prepending `GFX_idea_`, so `picture = GFX_idea_X` asks for the sprite `GFX_idea_GFX_idea_X`. Neither that name nor the bare `GFX_idea_X` is defined anywhere in the mod's 29 `.gfx` files.
+All 119 resolve. **hoi4skill's 119 errors were false positives.**
 
-The mod is inconsistent: elsewhere it uses the correct bare form (`picture = generic_naval_manufacturer_1`).
+The engine has a **verbatim fallback**: when `GFX_idea_<picture>` does not exist it uses `<picture>` directly as a sprite name. Vanilla relies on this in 20 of its own ideas — for example `picture = GFX_idea_CHI_air_force`, where `GFX_idea_GFX_idea_CHI_air_force` does not exist but `GFX_idea_CHI_air_force` does.
 
-Either these 117 ideas have broken icons, or the sprites resolve from vanilla and the engine's fallback covers it. **This cannot be settled without `$HOI4_VANILLA_ROOT`.** Revisit once vanilla files are in place — it is the single largest open correctness question in the mod.
+Checked against 29,629 sprite declarations across vanilla and the mod: 119 of 119 resolve. The mod is stylistically inconsistent (3,244 ideas use the bare form) but not broken.
+
+### N-05 — 50 idea pictures resolve to no sprite at all
+**Status: unresolved. Reported by `tools/ror_lint.py` as `R008`.**
+
+76 uses across 50 distinct values. Split by whether the artwork exists:
+
+- **23 have a `.dds` on disk but no `.gfx` spriteType.** The art was drawn and shipped but never declared, so the idea shows a missing icon. Examples: `GFX_CPG_vivox_resyrs_1/2` → `gfx/interface/ideas/CPG/CPG_vivox_resyrs_*.dds`; `GFX_POL_agitation_fascism` → `gfx/interface/ideas/POL/POL_agitation_fascism.dds`; `Vasil_Zaharko` → `gfx/interface/ideas/ministers/BLR/Vasil_Zaharko.dds`. **Fixing these is mechanical** — declare the sprites in a new additive `interface/ror_fork_*.gfx` — and would visibly improve the mod.
+- **27 have no artwork found**, including `red_new_army` (20 uses), `generic_pp_stability_bonus` (5) and `mex_callistas` (2). These need art, or a different `picture` value.
+
+Note the check must allow two engine behaviours or it reports ~1,600 phantom findings: the verbatim fallback above, and **graphical-culture variants** — generic advisor portraits are declared as `GFX_idea_<name>_russian_2d`, `_western_european_2d` and so on, with the suffix chosen at runtime, so a bare `<name>` resolves through any of them. That accounts for 1,059 uses of `min_random_generic_icon_N` alone.
+
+### N-06 — 14 focus icons resolve to no sprite
+**Status: unresolved. Reported as `R007`.**
+
+- **`GFX_ggoal_generic_air_fighter2`** (`USA_npt.txt:2317`) is a one-character typo — vanilla has `GFX_goal_generic_air_fighter2`. Trivially fixable.
+- **3 have art but no declaration**: `GFX_BLR_sovmest_zased`, `GFX_BLR_razvit_obrz`, `GFX_BLR_otkr_gos_univer`, all with `.dds` files under `gfx/interface/goals/LitBlr/`.
+- **10 have neither art nor declaration**: `GFX_z_goal_rabgosudarstvo`, `GFX_z_goal_socmilirarism` (itself probably a typo for `socmilitarism`, though neither exists), `GFX_z_goal_permrevolt`, `GFX_BLR_pazvernut_vneshn_polit`.
 
 ### N-03 — `FIN_republic` and `FIN_ASK_94` deadlock each other
 **Status: unresolved, needs a design decision.** `common/national_focus/Finland_npt_new.txt:451,694`
