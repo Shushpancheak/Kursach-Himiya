@@ -99,6 +99,38 @@ class Lint:
         for path in self.scan("common/**/*.txt", "events/**/*.txt", "history/**/*.txt"):
             for line, message in parse_file(path).problems:
                 self.report("S001", ERROR, path, line, message)
+        self.check_encoding()
+
+    def check_encoding(self):
+        """Script files must be valid UTF-8.
+
+        Found via T4: fifteen files were CP1251, and the game's parser stops
+        at the first bad byte — so a mis-encoded comment silently truncates
+        the rest of the file. `npt_RSS_esser.txt` lost two idea definitions
+        that way, which surfaced as `Unknown modifier` and `Expected idea
+        name` errors hundreds of lines later.
+
+        Every reader here uses errors="replace", so nothing else in this
+        suite would ever notice.
+        """
+        for path in self.scan(
+            "common/**/*.txt", "events/**/*.txt", "history/**/*.txt",
+            "interface/**/*.gfx", "interface/**/*.gui", "localisation/**/*.yml",
+        ):
+            raw = path.read_bytes()
+            try:
+                raw.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                line = raw[: exc.start].count(b"\n") + 1
+                hint = ""
+                try:
+                    hint = f"; reads as CP1251: {raw.decode('cp1251')[exc.start:exc.start + 30]!r}"
+                except Exception:
+                    pass
+                self.report(
+                    "S002", ERROR, path, line,
+                    f"file is not valid UTF-8 (bad byte at offset {exc.start}){hint}",
+                )
 
     # -- L: localisation ----------------------------------------------------
 

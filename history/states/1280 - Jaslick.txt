@@ -11,7 +11,7 @@ state = {
 		#add_core_of = RUS
 		add_core_of = TRK
 		add_core_of = KHI
-		add_core_of = KAZ #каралпакстан
+		add_core_of = KAZ #РєР°СЂР°Р»РїР°РєСЃС‚Р°РЅ
 		buildings = {
 			infrastructure = 0
 		}

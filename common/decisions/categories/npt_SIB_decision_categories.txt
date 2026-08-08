@@ -20,7 +20,7 @@ rcw_SIB_centralisation_of_east_decisions = {
 	
 	icon = rcw_RVA_governor_general_decisions
 }
-#Разгром Учредиловцев
+#Р Р°Р·РіСЂРѕРј РЈС‡СЂРµРґРёР»РѕРІС†РµРІ
 SIB_fight_CCA_influence_cat = {
 	allowed = {
 		original_tag = SIB

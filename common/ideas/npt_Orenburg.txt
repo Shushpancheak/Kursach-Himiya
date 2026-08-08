@@ -221,7 +221,7 @@ ideas = {
 			modifier = {
 				weekly_manpower = 200
 				monthly_population = 0.12
-				stability_weekly = 0.1 # Ï· stability_weekly_factor?
+				stability_weekly = 0.1 # –º–± stability_weekly_factor?
 			}
 		}
 

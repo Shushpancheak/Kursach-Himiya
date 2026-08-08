@@ -1711,7 +1711,7 @@ spriteTypes = {
 		texturefile = "gfx/interface/ideas/BLR_bvk.dds"
 	}
 	
-	#Закаспий
+	#Р—Р°РєР°СЃРїРёР№
 	spriteType = {
 		name = "GFX_idea_CPG_army_poor_army"
 		texturefile = "gfx/interface/ideas/CPG/CPG_army_poor_army.dds"
@@ -1857,7 +1857,7 @@ spriteTypes = {
 		texturefile = "gfx/interface/ideas/CPG/CPG_eng_vliyanie.dds"
 	}
 	
-	#Генерики
+	#Р“РµРЅРµСЂРёРєРё
 	spriteType = {
 		name = "GFX_idea_GEN_agrarian_movements"
 		texturefile = "gfx/interface/ideas/GEN/idea_GEN_agrarian_movements.dds"

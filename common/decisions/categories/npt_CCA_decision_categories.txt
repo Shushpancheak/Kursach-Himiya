@@ -94,8 +94,8 @@ rcw_sibirian_affairs_CCA_desisions = {
 		#SIB = { exists = yes }
 	}
 }
-#Реворк
-#Контроль офицеров
+#Р РµРІРѕСЂРє
+#РљРѕРЅС‚СЂРѕР»СЊ РѕС„РёС†РµСЂРѕРІ
 CCA_officers_controll = {
 	allowed = {
 		original_tag = CCA
@@ -111,7 +111,7 @@ CCA_officers_controll = {
 	picture = GFX_decision_cat_picture_rcw_CCA_right_monarcical_reaction_eser
 	icon = rcw_CCA_right_monarcical_reaction_eser
 }
-#Территориальные части
+#РўРµСЂСЂРёС‚РѕСЂРёР°Р»СЊРЅС‹Рµ С‡Р°СЃС‚Рё
 CCA_territorial_corps_cat = {
 	allowed = {
 		original_tag = CCA
@@ -127,7 +127,7 @@ CCA_territorial_corps_cat = {
 	picture = GFX_decision_cat_picture_rcw_CCA_right_monarcical_reaction_eser
 	icon = rcw_CCA_right_monarcical_reaction_eser
 }
-#Формирование национальных частей
+#Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ РЅР°С†РёРѕРЅР°Р»СЊРЅС‹С… С‡Р°СЃС‚РµР№
 CCA_national_corps_cat = {
 	allowed = {
 		original_tag = CCA

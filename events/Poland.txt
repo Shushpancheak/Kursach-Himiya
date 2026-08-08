@@ -10483,7 +10483,7 @@ country_event = {
 			}
 			random_country = { 
 				limit = { tag = LIT OR = { has_government = radical_socialism has_government = communism } }
-				Padd_timed_idea = { idea = POL_rus_ukr_modifier_sekret_peremirye days = 250 }
+				add_timed_idea = { idea = POL_rus_ukr_modifier_sekret_peremirye days = 250 }
 			}
 		}
 		else_if = {

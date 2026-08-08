@@ -29,7 +29,7 @@ ideas = {
 			
 			modifier = {
 				stability_factor = -0.04
-				politiral_power_factor = -0.05
+				political_power_factor = -0.05
 			}
 		}
 		
