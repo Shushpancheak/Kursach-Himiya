@@ -69,6 +69,8 @@ class Lint:
         self.root = root
         self.limit = files
         self.findings: list[Finding] = []
+        self._deny: list[tuple[re.Pattern, str]] | None = None
+        self.focus_ids: set[str] = set()
 
     # -- helpers ------------------------------------------------------------
 
@@ -130,6 +132,7 @@ class Lint:
                     seen[entry.key] = (str(Path(path).relative_to(self.root)), entry.line)
 
                 self._check_markup(path, entry)
+                self._check_voice(path, entry)
 
     def _check_markup(self, path: Path, entry):
         """Colour and icon markup.
@@ -148,6 +151,60 @@ class Lint:
                 "L005", ERROR, path, entry.line,
                 f"key `{entry.key}` has a `§` with no colour code or reset after it",
             )
+
+    # Event localisation keys: `<namespace>.<number>.<suffix>`, e.g.
+    # `rcw_kolchak.3.d`, `soviet.3.t`, `rcw_nrr.19.desc`.
+    EVENT_KEY = re.compile(r"^[a-z][a-z0-9_]*\.\d+\.[a-z0-9_]+$")
+
+    def _is_authored_prose(self, key: str) -> bool:
+        """Voice rules apply to text this project writes: event and focus
+        prose. They do not apply to engine UI strings, technology names or
+        tooltips inherited from vanilla — those are Paradox's register, not
+        RoR's, and holding them to the period lexicon produces noise rather
+        than findings."""
+        if self.EVENT_KEY.match(key):
+            return True
+        stem = key[:-5] if key.endswith("_desc") else key
+        return stem in self.focus_ids
+
+    def _check_voice(self, path: Path, entry):
+        """Lexicon deny-list (R2).
+
+        The crudest possible defence against tonally wrong Russian, and worth
+        having precisely because every other tier is blind to voice: T1 checks
+        the key exists, T2 that the reference resolves, T3 renders the tree.
+        None can tell a Sovnarkom decree from a corporate memo.
+
+        This catches vocabulary, not register. The corpus, `style/summary.md`
+        and the owner's review (C9) are what actually carry R2.
+        """
+        if not self._is_authored_prose(entry.key):
+            return
+        for pattern, term in self.deny_lexicon:
+            if pattern.search(entry.text):
+                self.report(
+                    "V001", WARNING, path, entry.line,
+                    f"key `{entry.key}` contains `{term}`, which is on the deny lexicon "
+                    "(anachronism or modern bureaucratic Russian)",
+                )
+
+    @property
+    def deny_lexicon(self) -> list[tuple[re.Pattern, str]]:
+        if self._deny is None:
+            self._deny = []
+            path = self.root / "style" / "lexicon-deny.txt"
+            if path.exists():
+                for line in path.read_text(encoding="utf-8").splitlines():
+                    term = line.split("#")[0].strip()
+                    if not term:
+                        continue
+                    # Match the stem so Russian inflections are caught, but
+                    # require a word boundary at the start so `регион` does
+                    # not fire inside an unrelated word.
+                    self._deny.append(
+                        (re.compile(rf"\b{re.escape(term)}", re.IGNORECASE), term)
+                    )
+        return self._deny
 
     # -- E: engine rules ----------------------------------------------------
 
@@ -401,10 +458,14 @@ class Lint:
     # -- entry point --------------------------------------------------------
 
     def run(self):
+        # Focuses are collected first so the voice check can tell authored
+        # focus prose from inherited UI strings.
+        focuses, trees = self.collect_focuses()
+        self.focus_ids = set(focuses)
+
         self.check_structure()
         self.check_localisation()
         self.check_engine()
-        focuses, trees = self.collect_focuses()
         self.check_focus_trees(focuses, trees)
         return self.findings
 

@@ -1,0 +1,111 @@
+# Deny list — words and phrases that break the period.
+#
+# Checked by tools/ror_lint.py (V001) against player-facing localisation.
+# One term per line. `#` starts a comment. Matching is case-insensitive and
+# word-boundary aware, so a stem here catches its inflections.
+#
+# This list is deliberately conservative. A false positive costs a writer a
+# few seconds; a missed anachronism ships. Only add a term you can defend on
+# the evidence — the date it entered Russian, or the register it belongs to.
+#
+# Terms that are correct in a LATER period are listed with the date they
+# become available. The lint cannot see dates, so it flags them and the
+# writer justifies the use.
+
+# --- modern management and corporate Russian -------------------------------
+# The single most common tell in generated text: grammatical, period-blind.
+оптимизация
+оптимизировать
+эффективность процессов
+менеджмент
+менеджер
+мотивация
+коммуникация
+координация усилий
+функционал
+проблематика
+данный вопрос
+на текущий момент
+в рамках данного
+по итогам работы
+осуществлять деятельность
+реализация проекта
+запустить процесс
+механизм взаимодействия
+целевая аудитория
+дорожная карта
+ключевые показатели
+стратегическое видение
+синергия
+консенсус
+
+# --- modern loanwords ------------------------------------------------------
+бизнес
+стартап
+офис
+имидж
+рейтинг
+тренд
+формат
+контент
+медиа
+# логистика - REMOVED: a HOI4 game term.
+инфраструктурный
+лидерство
+кейс
+локация
+актуальный
+# глобальный - REMOVED: appears in engine UI strings.
+# регион - REMOVED: HOI4's own Russian UI uses it for states, and the word
+#          predates 1917. It fired 3848 times on upstream.
+
+# --- political vocabulary that postdates the setting -----------------------
+тоталитаризм        # coined in Italy in the 1920s; not Russian usage in 1917
+геноцид             # 1944
+холодная война      # 1945+
+права человека      # modern formulation; period text says гражданские свободы
+гражданское общество
+силовики
+спецслужбы
+элиты
+популизм
+электорат
+легитимность        # the concept exists; the word is modern in Russian
+идентичность
+менталитет
+# репрессии - REMOVED: 19th-century Russian legal vocabulary, not a 1930s coinage.
+геополитика
+
+# --- Soviet terms that postdate the civil war ------------------------------
+# Correct later. Flagged so the writer confirms the date.
+колхоз              # 1928+
+совхоз              # 1928+
+пятилетка           # 1928+
+коллективизация     # 1929+
+индустриализация    # 1928+
+ГУЛАГ               # 1930+
+НКВД                # as the security organ: 1934+. The 1917 Наркомвнудел is different
+КГБ                 # 1954+
+СССР                # December 1922+
+советский народ     # much later ideological construct
+номенклатура
+стахановец          # 1935+
+враг народа         # available, but its 1937 sense is anachronistic here
+
+# --- anachronistic technology and everyday life ----------------------------
+# компьютер - REMOVED: "Механический компьютер" is a real interwar technology.
+# телевидение - REMOVED: a real 1930s technology in this timeframe.
+# радиостанция - REMOVED: period-correct for the mod's later years.
+интернет
+# самолётный парк - REMOVED: unconvincing.
+# автопарк - REMOVED: unconvincing; no evidence it is anachronistic.
+
+# --- fourth-wall breaks ----------------------------------------------------
+# Never appears in player-facing text regardless of period.
+переработано
+добавлено в обновлении
+исправлена ошибка
+в новой версии
+разработчик
+баланс игры
+геймплей

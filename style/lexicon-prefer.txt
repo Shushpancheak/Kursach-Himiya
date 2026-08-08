@@ -1,0 +1,112 @@
+# Prefer list — period-correct vocabulary, by register.
+#
+# Not linted. This is reference for `ror-voice`: reach for these before
+# reaching for anything modern. Sections mirror `matrix.yaml` registers.
+#
+# Where a term is faction-specific, that is the point. The same body has
+# different names depending on who is talking about it.
+
+## Forms of address
+товарищ                 # socialist, Bolshevik, also Green
+гражданин / гражданка   # republican, Provisional Government, Komuch
+господин / госпожа      # pre-revolutionary, White, Kadet
+милостивый государь     # formal correspondence, older register
+Ваше Высокопревосходительство   # full general, actual privy councillor
+Ваше Превосходительство         # general, state councillor
+Ваше Императорское Величество
+братцы / мужики         # addressing soldiers or peasants directly
+
+## Bodies and institutions
+Совет рабочих и солдатских депутатов
+Совдеп                  # colloquial, hostile or familiar
+Совнарком
+ВЦИК
+ВЧК
+Реввоенсовет
+Временное правительство
+Учредительное собрание
+Комуч
+Директория
+Государственная дума
+Особое совещание
+Ставка
+Войсковой круг
+Войсковое правительство
+Центральная Рада
+земство
+волостной сход
+охранное отделение / охранка
+Наркомпрод
+продотряд
+
+## Ranks and military
+юнкер
+прапорщик
+подпоручик
+штабс-капитан
+есаул
+войсковой старшина
+атаман
+вахмистр
+унтер-офицер
+красногвардеец
+краском
+комиссар
+дружина
+сотня
+эскадрон
+батарея
+бронепоезд
+тачанка
+
+## Political vocabulary of the period
+самодержавие
+контрреволюция
+буржуазия
+пролетариат
+трудовое крестьянство
+кулак / середняк / бедняк
+эсер / левый эсер
+кадет
+меньшевик
+большевик
+анархист
+соглашатель
+интервенция
+продразвёрстка
+военный коммунизм
+национализация
+экспроприация
+Учредилка              # dismissive, Bolshevik register
+белогвардеец
+смута
+
+## Administrative geography
+губерния
+уезд
+волость
+станица
+хутор
+градоначальство
+область Войска Донского
+Юг России
+Сибирь
+
+## Units of measure
+верста
+пуд
+фунт
+аршин
+сажень
+десятина
+золотник
+
+## Turns of phrase
+в силу сложившихся обстоятельств
+не замедлит сказаться
+надлежит
+благоугодно
+по всей видимости
+не оставит попыток
+взять власть в свои руки
+довести до сведения

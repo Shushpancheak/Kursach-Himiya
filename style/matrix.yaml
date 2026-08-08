@@ -1,0 +1,188 @@
+# Voice matrix: register x leaning x country.
+#
+# A Sovnarkom decree and a Denikin proclamation must not sound alike. This is
+# the lookup `ror-voice` uses to pick a register before writing a line.
+#
+# Resolution order:
+#   1. `countries[<TAG>]` if present  — overrides everything below it
+#   2. `registers[<leaning>]`         — the base voice
+#   3. `shared`                       — applies to all of them
+#
+# IMPORTANT: choose the register by *who receives the event*, not by which
+# file it lives in. See style/summary.md.
+
+version: 1
+
+shared:
+  narration: >
+    Partisan contemporary account, third person. Dense with real names,
+    institutions, dates and places. Never a historian's balanced summary.
+  title: Short noun phrase. No sentence, no question, no exclamation mark.
+  description: 2-5 sentences, up to a few paragraphs. Paragraph break is \n.
+  options: >
+    Short, decided, carrying the attitude of the choice. Imperative or
+    first-person plural. Never a neutral menu label.
+  forbidden:
+    - implementation history ("now reworked", "newly added")
+    - mechanics-speak in player-facing text
+    - modern bureaucratic Russian (see lexicon-deny.txt)
+    - any language other than Russian
+
+registers:
+
+  bolshevik:
+    address: товарищ
+    self: >
+      "мы", "наша партия", "революция", "советская власть",
+      "красная гвардия", "рабочие и солдаты"
+    enemies: >
+      Named by surname alone. "контрреволюция", "белобандиты", "буржуазия",
+      "соглашатели", "меньшевистско-правоэсеровский". Contempt is explicit.
+    institutions: [Совнарком, ВЦИК, ВЧК, Совдеп, Реввоенсовет, Съезд Советов]
+    decisions: >
+      Collegial. Votes, committees, decrees. Options often read
+      "Голосую - ..." because the body decides, not a man.
+    tone: Urgent, confident, moralising. The revolution is a fact being defended.
+    corpus: bolshevik
+
+  sr-komuch:
+    address: гражданин
+    self: >
+      "Учредительное собрание", "воля народа", "земля и воля", "демократия",
+      "трудовое крестьянство"
+    enemies: >
+      Both sides. "узурпаторы" for the Bolsheviks, "реакция" for the Whites.
+      The defining note is being squeezed from two directions.
+    institutions: [Учредительное собрание, Комуч, Директория, земство, кооперация]
+    decisions: Legalistic. Mandates, resolutions, appeals to the popular will.
+    tone: >
+      Principled and increasingly beleaguered. Invokes legitimacy because it
+      has little force.
+    corpus: sr-komuch
+
+  kadet-provisional:
+    address: гражданин (republican) / господин (formal)
+    self: >
+      "Временное правительство", "государственность", "порядок",
+      "союзнические обязательства", "свободная Россия"
+    enemies: >
+      "анархия", "разложение", "демагоги", "немецкие агенты".
+      Disorder itself is the enemy more than any faction.
+    institutions: [Временное правительство, Дума, Совещание, Ставка, комиссар]
+    decisions: Ministerial. Committees, conferences, appeals to duty and law.
+    tone: >
+      Anxious respectability. Educated register, longer sentences, constant
+      worry about the state dissolving.
+    corpus: kadet-provisional
+
+  white:
+    address: господин / rank (Ваше Превосходительство for generals)
+    self: >
+      "Добровольческая армия", "единая и неделимая Россия", "долг",
+      "честь", "русское дело", "порядок"
+    enemies: >
+      "красные", "большевики", "комиссары", "смута", "измена".
+      Often "банды" - denying them the status of an army.
+    institutions: [Ставка, Войсковой круг, атаман, Особое совещание, Директория]
+    decisions: >
+      Military and personal. A commander decides and issues an order. Not a
+      vote.
+    naming: >
+      Respectful register uses name + patronymic ("Александр Васильевич").
+      Officers are named by rank.
+    tone: >
+      Duty, sacrifice, restoration. Elegiac when losing. Never populist.
+    corpus: white
+
+  monarchist:
+    address: Ваше Императорское Величество / Ваше Высокопревосходительство / милостивый государь
+    self: >
+      "престол", "самодержавие", "верноподданные", "Отечество",
+      "исконный порядок", "помазанник"
+    enemies: >
+      "крамола", "смутьяны", "социалисты-провокаторы", "инородцы",
+      "бунтовщики". The state's view of its subjects.
+    institutions: [Двор, Сенат, Синод, охранное отделение, губернатор, Дума]
+    decisions: Sovereign. Manifestos, ukases, appointments from above.
+    tone: >
+      Elevated, archaic, chancery Russian. Slavonicisms are appropriate here
+      and nowhere else.
+    corpus: monarchist
+
+  green-anarchist:
+    address: товарищ / брат / мужики
+    self: >
+      "вольница", "трудовой народ", "земля - крестьянам", "самоуправление",
+      "повстанцы", "батька"
+    enemies: >
+      Everyone with a state. "и белые, и красные", "продотряды",
+      "комиссародержавие", "реквизиции".
+    institutions: [сход, вольный совет, повстанческая армия, махновцы]
+    decisions: The assembly decides, or the ataman does. Never a ministry.
+    tone: >
+      Plain, peasant-inflected, sardonic. Shortest sentences of any register.
+      Suspicious of anyone who arrives with paperwork.
+    corpus: green-anarchist
+
+  foreign-power:
+    address: per that country's own convention
+    self: >
+      National interest, spheres of influence, the intervention as policy.
+      Russia is an object, not a subject.
+    enemies: Whoever threatens the interest at hand.
+    institutions: [посольство, миссия, экспедиционный корпус, Антанта, Центральные державы]
+    decisions: Cabinet and diplomatic. Notes, memoranda, instructions to envoys.
+    tone: >
+      Detached and instrumental. Even sympathy is calculated. Avoid making
+      foreign powers sound like participants in the Russian argument.
+    corpus: foreign-power
+
+# Country overrides. Only where a TAG genuinely differs from its register.
+countries:
+
+  SOV:
+    note: >
+      The centre of Bolshevik authority. Most formal of the red registers -
+      decrees, not agitation. Agitational tone belongs to local soviets.
+
+  RSR:
+    note: >
+      Russian Soviet Republic in its earliest, least consolidated form.
+      Improvised authority: it claims more than it holds.
+
+  DON:
+    note: >
+      Cossack self-government first, White cause second. "Войсковой круг",
+      "Дон", "казачество" outrank "Россия". Autonomy is a live tension, and
+      a Don event that sounds like Denikin's staff is wrong.
+
+  KUB:
+    note: Same as DON, with a stronger separatist and Ukrainian-facing note.
+
+  FRT:
+    register: green-anarchist
+    note: >
+      Makhno's Free Territory. Never bureaucratic, never deferential. Any
+      sentence that would fit in a ministry is wrong here.
+
+  CCA:
+    register: sr-komuch
+    note: >
+      Komuch. Constantly asserting a legitimacy it cannot enforce. Appeals to
+      the Constituent Assembly's mandate.
+
+  LIT:
+    register: foreign-power
+    note: >
+      National self-determination under German occupation. The Russian
+      argument is somebody else's argument.
+
+  POL:
+    register: foreign-power
+    note: >
+      Pilsudski's Poland. Confident, forward-leaning, its own project.
+      Not a Russian faction and should never read as one.
+
+  AUH:
+    register: foreign-power
+    note: Imperial chancery register, nationalities question always present.

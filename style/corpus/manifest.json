@@ -1,0 +1,68 @@
+{
+ "foreign-power": [
+  "austro-hungarian.2",
+  "austro-hungarian.3",
+  "austro-hungarian.4",
+  "germany.1",
+  "germany.2",
+  "germany.18",
+  "rcw_bfk.1",
+  "rcw_bfk.10"
+ ],
+ "bolshevik": [
+  "belarus_soviet.98",
+  "belarus_soviet.99",
+  "belarus_soviet.100",
+  "rcw_bolsheviks.2",
+  "rcw_bolsheviks.6",
+  "rcw_bolsheviks.11",
+  "rcw_dnb.1",
+  "rcw_dnb.11"
+ ],
+ "kadet-provisional": [
+  "russia.0",
+  "russia.2",
+  "russia.3",
+  "russia_filler.53",
+  "russia_filler.54",
+  "russia_filler.55",
+  "rcw_kcr.1",
+  "rcw_kcr.2"
+ ],
+ "sr-komuch": [
+  "rcw_all_rus_CA.3",
+  "rcw_all_rus_CA.4",
+  "rcw_all_rus_CA.5",
+  "rcw_all_rus_NA.1",
+  "rcw_all_rus_NA.2",
+  "rcw_all_rus_NA.3",
+  "rcw_cca.0",
+  "rcw_cca.1"
+ ],
+ "white": [
+  "rcw_amrprm.0",
+  "rcw_amrprm.1",
+  "rcw_amrprm.2",
+  "rcw_crimea.3",
+  "rcw_crimea.4",
+  "rcw_crimea.6",
+  "rcw_dku.1",
+  "rcw_dku.3"
+ ],
+ "green-anarchist": [
+  "rcw_free_territory.1",
+  "rcw_free_territory.2",
+  "rcw_free_territory.3",
+  "rcw_g.11",
+  "rcw_g.12",
+  "rcw_g.37"
+ ],
+ "monarchist": [
+  "rcw_muscovy.1",
+  "rcw_muscovy.4",
+  "rcw_muscovy.5",
+  "russian_ovrthrw_of_mon.0",
+  "russian_ovrthrw_of_mon.1",
+  "russian_ovrthrw_of_mon.2"
+ ]
+}
